@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 
 def tent(x, start, peak, end):
     if x <= start or x > end:
-        # print(x, start, end)
         return 0
     elif start < x <= peak:
         return (x - start) / (peak - start)
@@ -38,15 +37,18 @@ class BasisFunctionsArray:
     def __getitem__(self, index):
         return lambda x: self.basisfunctions(index, x)
 
+    def __len__(self):
+        return self.n - 1  # one less basis function than nodes
+
     def __iter__(self):
-        for i in range(self.n - 1):  # one less basis function than nodes
+        for i in range(len(self)):
             yield self[i]
 
 
 if __name__ == "__main__":  # do not run when file is imported
     x_axis = np.linspace(0, 1, 1000)
 
-    N = 10
+    N = 100
     phi = basisFunctions(N)
     plt.subplot(121)
 
