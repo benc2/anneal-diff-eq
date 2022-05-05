@@ -1,4 +1,4 @@
-- Uiteindelijke Ising problem: $E = H \sum\limits_{i=0}^n \sum\limits_{k=1}^3 q_k^i + \hat{J} \sum\limits_{i=0}^n \sum\limits_{k=1}^3 q_k^i q_{k+1 mod 3} +  \sum\limits_{i=0}^n \sum\limits_{k=1}^3 \sum\limits_{l=1}^3 q_k^{i-1}_k^i$
+- Uiteindelijke Ising problem: $E = H \sum\limits_{i=0}^n \sum\limits_{k=1}^3 q_k^i + \hat{J} \sum\limits_{i=0}^n \sum\limits_{k=1}^3 q_k^i q_{k+1 mod 3} +  \sum\limits_{i=0}^n \sum\limits_{k=1}^3 \sum\limits_{l=1}^3 (\tilde{J}^i)_{(k,l)} q_k^{i-1}_k^i q_l^i$
 
 
 - u^c is steeds je beste oplossing tot nu toe, r is de foutmarge die je kleiner gaat maken. H, \hat{J}, \tilde{J}
