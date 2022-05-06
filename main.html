@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module main</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>main</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cbenja%5Cdocuments%5Ctu%5Cappliedquantumalgorithms%5Canneal-diff-eq%5Cmain.py">c:\users\benja\documents\tu\appliedquantumalgorithms\anneal-diff-eq\main.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="neal.html">neal</a><br>
+</td><td width="25%" valign=top><a href="numpy.html">numpy</a><br>
+</td><td width="25%" valign=top><a href="matplotlib.pyplot.html">matplotlib.pyplot</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-Pi_functional"><strong>Pi_functional</strong></a>(S, a)</dt><dd><tt>Returns&nbsp;the&nbsp;value&nbsp;of&nbsp;the&nbsp;Pi&nbsp;functional&nbsp;given&nbsp;S&nbsp;and&nbsp;a<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;S&nbsp;(N&nbsp;by&nbsp;5&nbsp;array):&nbsp;An&nbsp;array&nbsp;containing&nbsp;S_i&nbsp;for&nbsp;i&nbsp;from&nbsp;1&nbsp;to&nbsp;N<br>
+&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;(array&nbsp;length&nbsp;N+1):&nbsp;An&nbsp;array&nbsp;containing&nbsp;the&nbsp;values&nbsp;at&nbsp;the&nbsp;nodes&nbsp;0&nbsp;to&nbsp;N<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;float:&nbsp;value&nbsp;of&nbsp;the&nbsp;Pi&nbsp;functional</tt></dd></dl>
+ <dl><dt><a name="-compute_a_min"><strong>compute_a_min</strong></a>(sampleset, u_c, r)</dt><dd><tt>Given&nbsp;a&nbsp;sampleset,&nbsp;returns&nbsp;the&nbsp;new&nbsp;best&nbsp;node&nbsp;values<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sampleset&nbsp;(SampleSet):&nbsp;a&nbsp;sampleset&nbsp;coming&nbsp;from&nbsp;a&nbsp;dwave&nbsp;solver&nbsp;solution&nbsp;of&nbsp;a&nbsp;model&nbsp;created&nbsp;by&nbsp;create_bqm<br>
+&nbsp;&nbsp;&nbsp;&nbsp;u_c&nbsp;(array&nbsp;of&nbsp;length&nbsp;N+1):&nbsp;the&nbsp;current&nbsp;best&nbsp;solution<br>
+&nbsp;&nbsp;&nbsp;&nbsp;r&nbsp;(float):&nbsp;the&nbsp;slack&nbsp;variable<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;array&nbsp;of&nbsp;length&nbsp;N+1:&nbsp;the&nbsp;node&nbsp;values&nbsp;corresponding&nbsp;to&nbsp;the&nbsp;best&nbsp;solution&nbsp;of&nbsp;the&nbsp;bqm</tt></dd></dl>
+ <dl><dt><a name="-create_bqm"><strong>create_bqm</strong></a>(H, J_hat, J_tildes, boundary_condition, b_c_strength=1)</dt><dd><tt>Creates&nbsp;BinaryQuadraticModel&nbsp;from&nbsp;parameters<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;H&nbsp;(float):&nbsp;self-interaction&nbsp;strength<br>
+&nbsp;&nbsp;&nbsp;&nbsp;J_hat&nbsp;(float):&nbsp;interaction&nbsp;strength&nbsp;between&nbsp;qubits&nbsp;in&nbsp;node&nbsp;graph<br>
+&nbsp;&nbsp;&nbsp;&nbsp;J_tildes&nbsp;(array&nbsp;of&nbsp;matrices):&nbsp;interaction&nbsp;strengths&nbsp;between&nbsp;qubits&nbsp;of&nbsp;consecutive&nbsp;nodes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;boundary_condition&nbsp;(string):&nbsp;type&nbsp;of&nbsp;boundary&nbsp;condition:&nbsp;"D"&nbsp;for&nbsp;Dirichlet,&nbsp;"N"&nbsp;for&nbsp;Neumann,&nbsp;otherwise&nbsp;ignored<br>
+&nbsp;&nbsp;&nbsp;&nbsp;b_c_strength&nbsp;(float):&nbsp;strength&nbsp;of&nbsp;boundary&nbsp;condition-enforcing&nbsp;interactions,&nbsp;the&nbsp;higher&nbsp;the&nbsp;stronger.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Coefficient&nbsp;will&nbsp;be&nbsp;set&nbsp;to&nbsp;the&nbsp;negative&nbsp;of&nbsp;this&nbsp;number<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;BinaryQuadraticModel:&nbsp;bqm&nbsp;corresponding&nbsp;to&nbsp;the&nbsp;inputs</tt></dd></dl>
+ <dl><dt><a name="-get_label"><strong>get_label</strong></a>(k, i)</dt><dd><tt>makes&nbsp;the&nbsp;label&nbsp;q_k^i&nbsp;given&nbsp;k,&nbsp;i<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;k&nbsp;(int):&nbsp;index&nbsp;of&nbsp;qubit&nbsp;(1,&nbsp;2&nbsp;or&nbsp;3)&nbsp;at&nbsp;node&nbsp;i<br>
+&nbsp;&nbsp;&nbsp;&nbsp;i&nbsp;(_type_):&nbsp;node&nbsp;index<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;string:&nbsp;label&nbsp;q_k^i</tt></dd></dl>
+ <dl><dt><a name="-mod_3"><strong>mod_3</strong></a>(k)</dt></dl>
+ <dl><dt><a name="-parse_label"><strong>parse_label</strong></a>(label)</dt><dd><tt>Given&nbsp;a&nbsp;label&nbsp;of&nbsp;the&nbsp;form&nbsp;q_k^i,&nbsp;returns&nbsp;k,&nbsp;i&nbsp;as&nbsp;ints<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;label&nbsp;(string):&nbsp;label&nbsp;of&nbsp;the&nbsp;form&nbsp;q_k^i<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(int,&nbsp;int):&nbsp;k&nbsp;and&nbsp;i&nbsp;from&nbsp;the&nbsp;label</tt></dd></dl>
+ <dl><dt><a name="-qubit_triplet_to_value"><strong>qubit_triplet_to_value</strong></a>(q, v)</dt><dd><tt>Given&nbsp;a&nbsp;triplet&nbsp;of&nbsp;qubits&nbsp;corresponding&nbsp;to&nbsp;one&nbsp;node&nbsp;and&nbsp;the&nbsp;set&nbsp;of&nbsp;allowed&nbsp;values,&nbsp;computes<br>
+the&nbsp;associated&nbsp;value&nbsp;of&nbsp;the&nbsp;node,&nbsp;as&nbsp;in&nbsp;equation&nbsp;11&nbsp;of&nbsp;the&nbsp;paper<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;q&nbsp;((±1,&nbsp;±1,&nbsp;±1)):&nbsp;Triplet&nbsp;of&nbsp;qubits&nbsp;at&nbsp;one&nbsp;node<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v&nbsp;(array&nbsp;of&nbsp;length&nbsp;3):&nbsp;The&nbsp;allowed&nbsp;values&nbsp;of&nbsp;the&nbsp;node</tt></dd></dl>
+ <dl><dt><a name="-simulated_sample"><strong>simulated_sample</strong></a>(bqm)</dt></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>SPIN</strong> = &lt;Vartype.SPIN: frozenset({1, -1})&gt;</td></tr></table>
+</body></html>

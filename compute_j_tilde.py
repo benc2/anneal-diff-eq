@@ -39,7 +39,9 @@ def compute_J_tilde(n, S, v_values_prev, v_values_current):
             matrix.append(row)
 
             b.append(
-                np.dot(compute_A(v_values_prev[i - 1], v_values_current[j - 1]), S[n])
+                np.dot(
+                    compute_A(v_values_prev[i - 1], v_values_current[j - 1]), S[n - 1]
+                )
             )
 
     matrix = np.array(matrix).T
@@ -54,7 +56,7 @@ def compute_J_tilde(n, S, v_values_prev, v_values_current):
 
 
 def compute_all_J_tildes(S, u_c, r):
-    N = len(u_c)
+    N = len(u_c) - 1
     j_tildes = []
     for i in range(1, N + 1):
         prev_node = u_c[i - 1]

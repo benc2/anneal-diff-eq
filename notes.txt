@@ -21,3 +21,13 @@ iteratie:
         - Zet u^c = a_min
     
 
+
+- Om Dirichlet randvoorwaarden te krijgen, zet de H waarden van q_2^0 en q_2^N op -1. Dan is de laagste 
+    energietoestand om die qubits op 1 te krijgen, dus nemen ze steeds de middelste van de 3 mogelijke
+    waarden aan. Die veranderen dan dus in principe niet. Misschien zelfs nodig om de H waarde nog
+    negatiever te zetten om de randvoorwaarde sterker te forceren mocht dat nodig zijn
+
+- Om Neumann randvoorwaarden te krijgen kan je forceren dat de eerste en tweede node steeds dezelfde 
+    waarde aannemen, zelfde voor de laatste twee. Dit kan je mogelijk doen door in de eerste en laatste
+    \tilde{J} de $(\tilde{J}^n)_{kk}$ waarden negatief te zetten zodat er een lagere energie is wanneer
+    q_k^{i-1} en q_k^{i} hetzelfde zijn voor k=1,2,3 (en dus de producten q_k^{i-1} * q_k^{i} positief)

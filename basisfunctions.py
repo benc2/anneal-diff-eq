@@ -48,7 +48,7 @@ class BasisFunctionsArray:
 if __name__ == "__main__":  # do not run when file is imported
     x_axis = np.linspace(0, 1, 1000)
 
-    N = 100
+    N = 10
     phi = basisFunctions(N)
     plt.subplot(121)
 
