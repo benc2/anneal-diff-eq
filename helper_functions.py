@@ -151,10 +151,10 @@ def compute_a_min(sampleset, u_c, r):
     """
     best_sample_dict = sampleset.first.sample
     N = len(best_sample_dict) // 3 - 1  # remember there are N+1 nodes
-    qubit_array = np.zeros((3, N + 1))
+    qubit_array = np.zeros((N + 1, 3))
     for label, value in best_sample_dict.items():
         k, i = parse_label(label)
-        qubit_array[k - 1, i] = value
+        qubit_array[i, k - 1] = value
 
     a_min = np.zeros(N + 1)
     for i in range(0, N + 1):

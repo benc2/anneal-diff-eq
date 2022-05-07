@@ -21,11 +21,11 @@ if __name__ == "__main__":
     # S = None  # N by 5 array
     # r = None
     # u_c = None
-    N = 2
+    N = 4
     r_min = 0.1
     r = 0.5
     S = np.array([[1, 1, -2, 0, 0]] * N)
-    u_c = np.array([0, 0.8, 1])
+    u_c = np.array([0, 0.3, 0.4, 0.8, 1])
 
     H = 1
     J_hat = H  # set equal as in paper
@@ -36,9 +36,8 @@ if __name__ == "__main__":
 
     # box algorithm
     while r > r_min:
-        # print(r)
         J_tildes = compute_all_J_tildes(S, u_c, r)
-        bqm = create_bqm(H, J_hat, J_tildes, boundary_condition="D")
+        bqm = create_bqm(H, J_hat, J_tildes, boundary_condition="D", b_c_strength=3)
         sampleset = simulated_sample(bqm)
         # solver.sample(bqm)  # adjust this to the solver!
         a_min = compute_a_min(sampleset, u_c, r)
