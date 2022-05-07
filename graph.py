@@ -4,7 +4,7 @@ from dimod import to_networkx_graph
 from helper_functions import parse_label
 
 
-def show_bqm_graph(bqm):
+def show_bqm_graph(bqm,show=True):
     G = to_networkx_graph(bqm)
     node_positions = {}
     for node in G.nodes:
@@ -49,4 +49,5 @@ def show_bqm_graph(bqm):
     nx.draw_networkx_edge_labels(
         G, node_positions, edge_labels=edge_labels, label_pos=0.4
     )
-    plt.show()
+    if show:
+        plt.show()
