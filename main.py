@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import neal
+from dwave.system import DWaveSampler, EmbeddingComposite
+
 from helper_functions import (
     Pi_functional,
     create_bqm,
@@ -14,6 +16,12 @@ from basisfunctions import calculate_S
 def simulated_sample(bqm):
     sim_solver = neal.SimulatedAnnealingSampler()
     return sim_solver.sample(bqm, beta_range=[0.0001, 4.2], num_reads=1000).aggregate()
+
+def real_sample(bqm):
+    real_solver = EmbeddingComposite(DWaveSampler())
+    return real_solver.sample(bqm, num_reads=1000,annealing_time=100,
+                             return_embedding=True).aggregate()
+
 
 
 if __name__ == "__main__":
