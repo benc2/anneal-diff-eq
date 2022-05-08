@@ -8,11 +8,11 @@ from helper_functions import (
     compute_all_J_tildes,
 )
 from graph import show_bqm_graph
-
+from basisfunctions import calculate_S
 
 def simulated_sample(bqm):
     sim_solver = neal.SimulatedAnnealingSampler()
-    return sim_solver.sample(bqm, beta_range=[0.1, 4.2])
+    return sim_solver.sample(bqm, beta_range=[0.0001, 4.2])
 
 
 if __name__ == "__main__":
@@ -24,8 +24,9 @@ if __name__ == "__main__":
     N = 4
     r_min = 0.1
     r = 0.5
-    S = np.array([[1, 1, -2, 0, 0]] * N)
+    # S = np.array([[1, 1, -2, 0, 0]] * N)
     u_c = np.array([0, 0.3, 0.4, 0.8, 1])
+    S = calculate_S(N) # S depends on the distance between the nodes
 
     H = 1
     J_hat = H  # set equal as in paper
