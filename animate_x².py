@@ -71,7 +71,8 @@ if __name__ == "__main__":
     while r > r_min and counter < 10 and ii < 100:
         J_tildes = compute_all_J_tildes(S, u_c, r)
         bqm = create_bqm(H, J_hat, J_tildes, boundary_condition="D")
-        sampleset = simulated_sample(bqm)
+        # sampleset = simulated_sample(bqm)
+        sampleset = real_sample(bqm)
         # solver.sample(bqm)  # adjust this to the solver!
 
         a_min = compute_a_min(sampleset, u_c, r)
