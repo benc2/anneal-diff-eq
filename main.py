@@ -10,9 +10,10 @@ from helper_functions import (
 from graph import show_bqm_graph
 from basisfunctions import calculate_S
 
+
 def simulated_sample(bqm):
     sim_solver = neal.SimulatedAnnealingSampler()
-    return sim_solver.sample(bqm, beta_range=[0.0001, 4.2],num_reads=1000)
+    return sim_solver.sample(bqm, beta_range=[0.0001, 4.2], num_reads=1000).aggregate()
 
 
 if __name__ == "__main__":
@@ -26,7 +27,7 @@ if __name__ == "__main__":
     r = 0.5
     # S = np.array([[1, 1, -2, 0, 0]] * N)
     u_c = np.array([0, 0.3, 0.4, 0.8, 1])
-    S = calculate_S(N) # S depends on the distance between the nodes
+    S = calculate_S(N, p=1, q=0, f=0)  # S depends on the distance between the nodes
 
     H = 1
     J_hat = H  # set equal as in paper
@@ -38,7 +39,7 @@ if __name__ == "__main__":
     # box algorithm
     while r > r_min:
         J_tildes = compute_all_J_tildes(S, u_c, r)
-        bqm = create_bqm(H, J_hat, J_tildes, boundary_condition="D", b_c_strength=3)
+        bqm = create_bqm(H, J_hat, J_tildes, boundary_condition="D", b_c_strength=1)
         sampleset = simulated_sample(bqm)
         # solver.sample(bqm)  # adjust this to the solver!
         a_min = compute_a_min(sampleset, u_c, r)
