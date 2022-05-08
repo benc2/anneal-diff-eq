@@ -27,12 +27,12 @@ def check_admissibility(sampleset):
 
 if __name__ == "__main__":
 
-    N = 2
-    r_min = 0.05
-    r = 1 / N
+    N = 4
+    r_min = 0.00001
+    r = 1/(1.5*N)
     # S = np.array([[1, 1, -2, 0, 0]] * N)
 
-    u_c = np.array([0, 0.5, 1])
+    u_c = np.array([0,0.205,0.7, 0.607 , 1])
     # u_c= np.random.rand(N+1)
     u_c[0] = 0
     u_c[N] = 1
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     except FileExistsError:
         pass
 
-    while r > r_min and ii < 10000:
+    while r > r_min and ii < 100:
         J_tildes = compute_all_J_tildes(S, u_c, r)
         bqm = create_bqm(H, J_hat, J_tildes, boundary_condition="D")
         sampleset = simulated_sample(bqm)
