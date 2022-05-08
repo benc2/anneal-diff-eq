@@ -12,7 +12,7 @@ from basisfunctions import calculate_S
 
 def simulated_sample(bqm):
     sim_solver = neal.SimulatedAnnealingSampler()
-    return sim_solver.sample(bqm, beta_range=[0.0001, 4.2])
+    return sim_solver.sample(bqm, beta_range=[0.0001, 4.2],num_reads=1000)
 
 
 if __name__ == "__main__":
