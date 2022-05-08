@@ -5,15 +5,39 @@ import imageio
 from datetime import datetime
 import webbrowser
 import os
+from helper_functions import compute_J_tilde
+from basisfunctions import calculate_S
+from helper_functions import parse_label
+
+
+def check_admissibility(sampleset):
+    sample = sampleset.first.sample
+    N = len(sample) // 3 - 1  # remember there are N+1 nodes
+    qubit_array = np.zeros((N + 1, 3))
+    for label, value in sample.items():
+        k, i = parse_label(label)
+        qubit_array[i, k - 1] = value
+
+    for i in range(N):
+        Sum = sum(qubit_array[i])
+        if Sum != -1: # check whether v^i_1 + v^i_2 + v^i_1 == -1
+            return False
+    return True
 
 
 if __name__ == "__main__":
 
-    N = 3
-    r_min = 0.02
-    r = 0.5
-    S = np.array([[1, 1, -2, 0, 0]] * N)
-    u_c = np.array(np.linspace(0, 1, N + 1))
+    N = 2
+    r_min = 0.05
+    r = 1 / N
+    # S = np.array([[1, 1, -2, 0, 0]] * N)
+
+    u_c = np.array([0, 0.5, 1])
+    # u_c= np.random.rand(N+1)
+    u_c[0] = 0
+    u_c[N] = 1
+    # exit()
+    S = calculate_S(N, p=1, q=0, f=0)  # S depends on the distance between the nodes
     H = 1
     J_hat = H  # set equal as in paper
 
@@ -71,6 +95,7 @@ if __name__ == "__main__":
     images = []
     for filename in filenames:
         images.append(imageio.imread(filename))
+    now = datetime.now()  # current date and time
 
     movie_filename = folder + f"movie_{time}.gif"
     imageio.mimsave(movie_filename, images, duration=0.005)
@@ -78,3 +103,6 @@ if __name__ == "__main__":
         os.remove(root_dir + filename)
     print("file://" + root_dir + movie_filename)
     webbrowser.open("file://" + root_dir + movie_filename)
+
+    imageio.mimsave(f"movie_{time}.gif", images, duration=0.005)
+    webbrowser.open(f"movie_{time}.gif")
