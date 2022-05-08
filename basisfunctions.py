@@ -35,12 +35,12 @@ def basis_functions(nodes, shape="triangle", x_l=0, x_r=1):
     return phi_output
 
 
-def calculate_S(nodes, basis, x_l=0, x_r=1, p=1, q=0, f=0):
+def calculate_S(nodes, shape = "triangle", x_l=0, x_r=1, p=1, q=0, f=0):
     """
     Calculates S for a given set of nodes and input functions
     :type nodes: int or array
     :param nodes: Either an integer (for evenly spaced nodes) or an array of custom nodes
-    :param basis: Basis functions
+    :param shape: Shape of basis functions
     :type x_l: float
     :type x_r: float
     :param x_l: Left boundary of the range (if nodes is an integer)
@@ -60,6 +60,9 @@ def calculate_S(nodes, basis, x_l=0, x_r=1, p=1, q=0, f=0):
     if isinstance(f, (int, float)):
         f_val = f
         f = lambda x: f_val
+
+    basis = basis_functions(nodes,shape)
+
     s = np.ndarray((len(nodes) - 1, 5))
     for i in range(len(nodes) - 1):  # i=0  here represents i=1 in the article
         i = i + 1
