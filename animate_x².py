@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     # S matrix specific for the equation
     S = calculate_S(N, p=1, q=0, f=2)
-    solution = lambda x: x - x ** 2  # exact solution
+    solution = lambda x: x - x**2  # exact solution
 
     # define an initial state close to the solution
     u_c = np.linspace(0, 1, N + 1) ** 2 * (1 - np.linspace(0, 1, N + 1))
@@ -71,23 +71,28 @@ if __name__ == "__main__":
     while r > r_min and counter < 10 and ii < 100:
         J_tildes = compute_all_J_tildes(S, u_c, r)
         bqm = create_bqm(H, J_hat, J_tildes, boundary_condition="D")
-        sampleset = simulated_sample(bqm)
+        sampleset = simulated_sample(bqm, filter=False)
         # sampleset = real_sample(bqm)
         # solver.sample(bqm)  # adjust this to the solver!
 
         a_min = compute_a_min(sampleset, u_c, r)
-        new_Pi = Pi_functional(S, a_min)
-        print(Pi_min, new_Pi, r)
-        if old_values != (Pi_min, new_Pi, r):  # zorgen dat hij niet eindeloos blijft hangen op dezelfde waarden
-            old_values = (Pi_min, new_Pi, r)
-            counter = 0
-        else:
-            counter += 1
-        if Pi_min < new_Pi:
+        # new_Pi = Pi_functional(S, a_min)
+        # print(Pi_min, new_Pi, r)
+        # if old_values != (Pi_min, new_Pi, r):  # zorgen dat hij niet eindeloos blijft hangen op dezelfde waarden
+        #     old_values = (Pi_min, new_Pi, r)
+        #     counter = 0
+        # else:
+        #     counter += 1
+        # if Pi_min < new_Pi:
+        #     u_c = a_min
+        # else:
+        #     r /= 1.2
+        #     Pi_min = new_Pi
+
+        if Pi_functional(S, a_min) < Pi_functional(S, u_c):
             u_c = a_min
         else:
-            r /= 1.2
-            Pi_min = new_Pi
+            r /= 2
         # plt.subplot(0)
         # plt.subplots()
         plt.subplot(211)
@@ -95,10 +100,12 @@ if __name__ == "__main__":
 
         plt.plot(np.linspace(0, 1, N + 1), u_c, "o")
         plt.plot(np.linspace(0, 1, N + 1), a_min, ".")
-        plt.plot(np.linspace(0, 1, 1001), [solution(x) for x in np.linspace(0, 1, 1001)])
+        plt.plot(
+            np.linspace(0, 1, 1001), [solution(x) for x in np.linspace(0, 1, 1001)]
+        )
         plt.legend(["u_c", "a_min", "exact solution"])
         plt.subplot(212)
-        plt.title(f"Pi_min: {Pi_min}, new_Pi: {new_Pi}")
+        # plt.title(f"Pi_min: {Pi_min}, new_Pi: {new_Pi}")
 
         show_bqm_graph(bqm, False)
         # plt.subplot(1)
