@@ -14,7 +14,7 @@ from graph import show_bqm_graph
 from basisfunctions import calculate_S
 
 
-def simulated_sample(bqm, filter=True):
+def simulated_sample(bqm, filter=False):
     ready = False
     while not ready:
         sim_solver = neal.SimulatedAnnealingSampler()
