@@ -20,7 +20,7 @@ def check_admissibility(sampleset):
 
     for i in range(N):
         Sum = sum(qubit_array[i])
-        if Sum != -1: # check whether v^i_1 + v^i_2 + v^i_1 == -1
+        if Sum != -1:  # check whether v^i_1 + v^i_2 + v^i_1 == -1
             return False
     return True
 
@@ -29,10 +29,10 @@ if __name__ == "__main__":
 
     N = 4
     r_min = 0.00001
-    r = 1/(1.5*N)
+    r = 1 / (1.5 * N)
     # S = np.array([[1, 1, -2, 0, 0]] * N)
 
-    u_c = np.array([0,0.205,0.7, 0.607 , 1])
+    u_c = np.array([0, 0.205, 0.7, 0.607, 1])
     # u_c= np.random.rand(N+1)
     u_c[0] = 0
     u_c[N] = 1
@@ -103,6 +103,3 @@ if __name__ == "__main__":
         os.remove(root_dir + filename)
     print("file://" + root_dir + movie_filename)
     webbrowser.open("file://" + root_dir + movie_filename)
-
-    imageio.mimsave(f"movie_{time}.gif", images, duration=0.005)
-    webbrowser.open(f"movie_{time}.gif")
