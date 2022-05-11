@@ -164,17 +164,34 @@ def compute_a_min(sampleset, u_c, r):
     return a_min
 
 
-def A_matrix(node_values):
+def A_matrix(a_coefficients):
+    """Computes the A_n vectors for each n and returns as a list of lists
+
+    Args:
+        a_coefficients (length N+1 array): the coefficients of the basis functions
+
+    Returns:
+        list of lists (N by 5): a list of A_n for each n
+    """
     A = []
     for a_prev, a_current in zip(
-        node_values, node_values[1:]
+        a_coefficients, a_coefficients[1:]
     ):  # get pairs (a_{i-1}, a_i)
         A.append([a_prev**2, a_current**2, a_prev * a_current, a_prev, a_current])
     return A
 
 
-def compute_A(node_1, node_2):
-    return np.array([node_1**2, node_2**2, node_1 * node_2, node_1, node_2])
+def compute_A(coeff_1, coeff_2):
+    """Computes the A vector for two consecutive basis functions
+
+    Args:
+        coeff_1 (float): the coefficient of the first of the two basis functions
+        coeff_2 (float): the coefficient of the second of the two basis functions
+
+    Returns:
+        _type_: _description_
+    """
+    return np.array([coeff_1**2, coeff_2**2, coeff_1 * coeff_2, coeff_1, coeff_2])
 
 
 index_to_q_triplet = {
@@ -185,6 +202,17 @@ index_to_q_triplet = {
 
 
 def compute_J_tilde(n, S, v_values_prev, v_values_current):
+    """Computes J tilde for the n-th element graph
+
+    Args:
+        n (int): index of element (1 up to & incl N)
+        S (N by 5 array): the S vectors of the problem description
+        v_values_prev (length 3 array): allowed values of node n-1
+        v_values_current (length 3 array): allowed values of node n
+
+    Returns:
+        3x3 numpy array: J tilde of n-th element
+    """
     # n starting from 1
     matrix = []
     b = []
@@ -216,6 +244,19 @@ def compute_J_tilde(n, S, v_values_prev, v_values_current):
 
 
 def compute_all_J_tildes(S, u_c, r):
+    """Computes the J tilde matrices for each of the element graphs.
+    (Note that this differs from compute_J_tilde in that it computes the
+    allowed values for each node given u_c and r, whereas the latter asks
+    you to give the allowed values)
+
+    Args:
+        S (N by 5 array): the S vectors of the problem description
+        u_c (length N+1 array): current best solution
+        r (float): slack variable
+
+    Returns:
+        List of n 3x3 numpy arrays: the J tilde matrices
+    """
     N = len(u_c) - 1
     j_tildes = []
     for i in range(1, N + 1):
