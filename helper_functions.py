@@ -229,3 +229,23 @@ def compute_all_J_tildes(S, u_c, r):
         )
         j_tildes.append(new_j_tilde)
     return j_tildes
+
+def feasible_solution(sample):
+    """"
+    Takes a single sample and check whether it satisfies the condition  v^i_1 + v^i_2 + v^i_1 == -1 for all i
+
+    :param sample:  The sample
+    """
+    # sample = sampleset.first.sample
+    N = len(sample.sample) // 3 - 1  # remember there are N+1 nodes
+    # print(sample.sample)
+    qubit_array = np.zeros((N + 1, 3))
+    for label, value in sample.sample.items():
+        k, i = parse_label(label)
+        qubit_array[i, k - 1] = value
+    # print(  [sum(qubit_array[i]) for i in range(N+1)])
+    for i in range(N+1):
+        Sum = sum(qubit_array[i])
+        if Sum != -1: # check whether v^i_1 + v^i_2 + v^i_1 == -1
+            return False
+    return True
