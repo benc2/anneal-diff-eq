@@ -13,20 +13,43 @@ def tent(x, start, peak, end):
         return 1 - (x - peak) / (end - peak)
 
 
+def r(x):
+    return 6 * x**5 - 15 * x**4 + 10 * x**3
+
+
+def quintic_spline(x, x0, x1, x2):
+    if x < x0 or x > x2:
+        return 0
+    elif 0 <= x < x1:
+        return r((x - x0) / (x1 - x0))
+    elif x1 <= x < x2:
+        return r((x2 - x) / (x2 - x1))
+    else:
+        return 0
+
+
 def basis_functions(nodes, shape="triangle", x_l=0, x_r=1):
     # give int to get equally spaced points, or give nodes directly
     if isinstance(nodes, int):
         nodes = np.linspace(x_l, x_r, nodes + 1)
 
+    shape_function = None
+    if shape == "triangle":
+        shape_function = tent
+    elif shape == "spline":
+        shape_function = quintic_spline
+    else:
+        raise ValueError(f"Unknown shape {shape}")
+
     # def phi_evaluation(i, x):   Dit klopt niet volgens mij, de eerste basis-functie heeft phi(0)=1 anders kan je nooit een waarde anders dan nul hebben in het punt 0
     #     return tent(x, nodes[i], nodes[i + 1], nodes[i + 2]) #de nodes moeten eentje verschoven, zie hieronder
     def phi_evaluation(i, x):
         if i == 0:
-            return tent(x, nodes[i] - 1, nodes[i], nodes[i + 1])
+            return shape_function(x, nodes[i] - 1, nodes[i], nodes[i + 1])
         if i == len(nodes) - 1:
-            return tent(x, nodes[i - 1], nodes[i], nodes[i] + 1)
+            return shape_function(x, nodes[i - 1], nodes[i], nodes[i] + 1)
         else:
-            return tent(x, nodes[i - 1], nodes[i], nodes[i + 1])
+            return shape_function(x, nodes[i - 1], nodes[i], nodes[i + 1])
 
     phi_output = np.vectorize(
         phi_evaluation, otypes=[float]
@@ -35,7 +58,7 @@ def basis_functions(nodes, shape="triangle", x_l=0, x_r=1):
     return phi_output
 
 
-def calculate_S(nodes, shape = "triangle", x_l=0, x_r=1, p=1, q=0, f=0):
+def calculate_S(nodes, shape="triangle", x_l=0, x_r=1, p=1, q=0, f=0):
     """
     Calculates S for a given set of nodes and input functions
     :type nodes: int or array
@@ -61,7 +84,7 @@ def calculate_S(nodes, shape = "triangle", x_l=0, x_r=1, p=1, q=0, f=0):
         f_val = f
         f = lambda x: f_val
 
-    basis = basis_functions(nodes,shape)
+    basis = basis_functions(nodes, shape)
 
     s = np.ndarray((len(nodes) - 1, 5))
     for i in range(len(nodes) - 1):  # i=0  here represents i=1 in the article
@@ -98,12 +121,12 @@ def calculate_S(nodes, shape = "triangle", x_l=0, x_r=1, p=1, q=0, f=0):
 
 
 class BasisFunctionsArray:
-    def __init__(self, nodes, *args, **kwargs) -> None:
+    def __init__(self, nodes, shape="triangle", *args, **kwargs) -> None:
         if isinstance(nodes, int):  # save amount of nodes
             self.n = nodes
         else:
             self.n = len(nodes)
-        self.basisfunctions = basis_functions(nodes, *args, **kwargs)
+        self.basisfunctions = basis_functions(nodes, shape, *args, **kwargs)
 
     def __getitem__(self, index):
         return lambda x: self.basisfunctions(index, x)
@@ -121,8 +144,8 @@ if __name__ == "__main__":  # do not run when file is imported
     x_axis = np.linspace(0, 1, 1000)
 
     N = 10
-    phi = basis_functions(N)
-    print(calculate_S(N, phi))
+    phi = basis_functions(N, "spline")
+    print(calculate_S(N, shape="spline"))
 
     plt.subplot(121)
 
@@ -130,8 +153,8 @@ if __name__ == "__main__":  # do not run when file is imported
         plt.plot(x_axis, phi(j, x_axis))
 
     plt.subplot(122)
-    phi = basis_functions([0, 0.1, 0.5, 0.6, 0.9, 1])
-    print(calculate_S(5, phi))
+    phi = basis_functions([0, 0.1, 0.5, 0.6, 0.9, 1], "spline")
+    print(calculate_S(5, "triangle"))
 
     for j in range(6):
         plt.plot(x_axis, phi(j, x_axis))
