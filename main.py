@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import neal
-from dwave.system import DWaveSampler, EmbeddingComposite
+from dwave.system import DWaveSampler, EmbeddingComposite, LeapHybridSampler
 
 from helper_functions import (
     Pi_functional,
@@ -34,6 +34,12 @@ def real_sample(bqm, filter=False):
         bqm, num_reads=1000, annealing_time=100, return_embedding=True
     ).aggregate()
 
+def hybrid_sample(bqm, filter=False):
+    real_solver = LeapHybridSampler()
+    return real_solver.sample(
+        bqm, time_limit=5
+    ).aggregate()
+
 
 if __name__ == "__main__":
     # N = None
@@ -41,8 +47,8 @@ if __name__ == "__main__":
     # S = None  # N by 5 array
     # r = None
     # u_c = None
-    N = 6
-    r_min = 0.0000001
+    N = 100
+    r_min = 0.002
     r = 1
     # S = np.array([[1, 1, -2, 0, 0]] * N)
     u_c = np.array(np.linspace(0, 1, N + 1)) ** 0.7
