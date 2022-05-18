@@ -1,18 +1,22 @@
 import copy
-import os, shutil
+import os
+import shutil
+import webbrowser
 from datetime import datetime
+from math import comb
 
-import matplotlib.pyplot as plt
 import imageio
+import matplotlib.pyplot as plt
 import neal
 import numpy as np
-import webbrowser
+import scipy.integrate as integrate
 from dwave.system import DWaveSampler, EmbeddingComposite
+from scipy.misc import derivative
 
 from basisfunctions import BasisFunctionsArray, calculate_S
 from graph import show_bqm_graph
 from helper_functions import (
-    Pi_functional,
+    A_matrix,
     compute_a_min,
     compute_all_J_tildes,
     create_bqm,
@@ -41,49 +45,47 @@ def sample(bqm, sampler, filter=False, **kwargs):
                 return sampleset
 
 
+index_to_q_triplet = {
+    1: (1, -1, -1),
+    2: (-1, 1, -1),
+    3: (-1, -1, 1),
+}
+
+
 class DiffEqn:
     def __init__(
-        self,
-        p,
-        q,
-        f,
-        initial_condition,
-        nodes=None,
-        x_l=0,
-        x_r=1,
-        boundary_condition="D",
-        basis_functions="triangle",
+        self, initial_condition, nodes, S, boundary_condition, basis_functions
     ) -> None:
-        self.boundary_condition = boundary_condition
+        self.S = S
         self.initial_condition = initial_condition
+        self.boundary_condition = boundary_condition
         self.basis_functions_shape = basis_functions
         self.N = len(initial_condition) - 1
-
-        if isinstance(nodes, int):
-            self.N = nodes
-            self.nodes = np.linspace(x_l, x_r, nodes + 1)
-
-        else:
-            self.nodes = nodes
-            if len(self.initial_condition) != len(self.nodes):
-                raise ValueError(
-                    f"Lengths of nodes ({len(nodes)}) and initial condition ({len(self.initial_condition)}) do not match"
-                )
-
-        self.S = calculate_S(nodes, self.basis_functions_shape, p=p, q=q, f=f)
-
-        # currently not compatible with how calculate_S works, it should accept any basis functions
+        self.nodes = nodes
+        if len(self.initial_condition) != len(self.nodes):
+            raise ValueError(
+                f"Lengths of nodes ({len(nodes)}) and initial condition ({len(self.initial_condition)}) do not match"
+            )
         self.solution = None
         self.solution_iterates = []
         self.bqm_iterates = []
         self.a_min_iterates = []
 
-    # def create_bqm(self, b_c_strength=1):
-    #     self.bqm = helper_create_bqm()
-    #     pass
+    def solution_function(self, coefficients=None):
+        """Returns the function x |-> \sum a[i]*\phi_i(x) where a[i] are the given coefficients.
+        Uses the optimal solution by default, but you can pass the coefficients if you want to plot
+        the function corresponding to those.
+        coefficients
 
-    def solution_function(self, coefficients):
+        Args:
+            coefficients (list[float], optional): _description_. Defaults to None.
+
+        Returns:
+            function float -> float: the function x |-> \sum a[i]*\phi_i(x)
+        """
         basis_functions = BasisFunctionsArray(self.nodes, self.basis_functions_shape)
+        if coefficients is None:
+            coefficients = self.solution
 
         @np.vectorize
         def fct(x):
@@ -94,10 +96,15 @@ class DiffEqn:
 
         return fct
 
-    def plot_solution(self, coefficients, **kwargs):
+    def plot_solution(self, coefficients=None, ax=plt, **kwargs):
+        """Plots the solution given by DiffEqn.solution_function
+
+        Args:
+            coefficients (list[float], optional): list of coefficients. Defaults to None.
+        """
         x_axis = np.linspace(self.nodes[0], self.nodes[-1], 1000)
         sol_fct = self.solution_function(coefficients)
-        plt.plot(x_axis, sol_fct(x_axis), **kwargs)
+        ax.plot(x_axis, sol_fct(x_axis), **kwargs)
 
     def default_plot(self, i):
         u_c = self.solution_iterates[i]
@@ -140,7 +147,7 @@ class DiffEqn:
         self.a_min_iterates = []
 
         while r > r_min:
-            J_tildes = compute_all_J_tildes(self.S, u_c, r)
+            J_tildes = self.compute_all_J_tildes(u_c, r)
             bqm = create_bqm(
                 H,
                 J_hat,
@@ -153,13 +160,14 @@ class DiffEqn:
             # solver.sample(bqm)  # adjust this to the solver!
             a_min = compute_a_min(sampleset, u_c, r)
             self.a_min_iterates.append(a_min)
-            if Pi_functional(self.S, a_min) < Pi_functional(self.S, u_c):
+            if self.Pi_functional(a_min) < self.Pi_functional(u_c):
                 u_c = a_min
             else:
                 r /= 2
 
             self.solution_iterates.append(u_c)
 
+        self.solution = u_c
         return u_c
 
     def animate(
@@ -214,3 +222,186 @@ class DiffEqn:
 
         if preview:
             webbrowser.open("file://" + absolute_filename)
+
+    def calculate_A_of_segment(self, a_left, a_right):
+        return np.array([a_left**2, a_right**2, a_left * a_right, a_left, a_right])
+
+    def calculate_A(self, a):
+        return [
+            self.calculate_A_of_segment(a_left, a_right)
+            for a_left, a_right in zip(a, a[:1])
+        ]
+
+    def Pi_functional(self, a):
+        total = 0
+        for S_i, A_i in zip(self.S, self.calculate_A(a)):
+            total += np.sum(S_i * A_i)
+        return total
+
+    def compute_J_tilde_of_segment(self, n, v_values_prev, v_values_current):
+        """Computes J tilde for the n-th element graph
+
+        Args:
+            n (int): index of element (1 up to & incl N)
+            S (N by 5 array): the S vectors of the problem description
+            v_values_prev (length 3 array): allowed values of node n-1
+            v_values_current (length 3 array): allowed values of node n
+
+        Returns:
+            3x3 numpy array: J tilde of n-th element
+        """
+        # n starting from 1
+        matrix = []
+        b = []
+        for i in range(1, 4):  # we loop over all 9 combinations of (a_i, a_{i+1})
+            for j in range(1, 4):  # given the 3 allowed values at each nodes
+                row = []
+                q_i = index_to_q_triplet[i]
+                q_j = index_to_q_triplet[j]
+                for k in range(3):
+                    for l in range(3):
+                        row.append(q_i[k] * q_j[l])
+                matrix.append(row)
+
+                b.append(
+                    np.sum(
+                        self.calculate_A_of_segment(
+                            v_values_prev[i - 1], v_values_current[j - 1]
+                        )
+                        * self.S[n - 1]
+                    )
+                )
+
+        J_vector = np.linalg.solve(matrix, b)  # do we need to transpose the matrix?
+        return J_vector.reshape((3, 3))
+
+    def compute_all_J_tildes(self, u_c, r):
+        """Computes the J tilde matrices for each of the element graphs.
+        (Note that this differs from compute_J_tilde in that it computes the
+        allowed values for each node given u_c and r, whereas the latter asks
+        you to give the allowed values)
+
+        Args:
+            S (N by 5 array): the S vectors of the problem description
+            u_c (length N+1 array): current best solution
+            r (float): slack variable
+
+        Returns:
+            List of n 3x3 numpy arrays: the J tilde matrices
+        """
+        N = len(u_c) - 1
+        j_tildes = []
+        for i in range(1, N + 1):
+            prev_node = u_c[i - 1]
+            curr_node = u_c[i]
+            new_j_tilde = self.compute_J_tilde_of_segment(
+                i,
+                [prev_node - r, prev_node, prev_node + r],
+                [curr_node - r, curr_node, curr_node + r],
+            )
+            j_tildes.append(new_j_tilde)
+        return j_tildes
+
+
+class SADiffEqn(DiffEqn):
+    def __init__(
+        self,
+        p,
+        q,
+        f,
+        initial_condition,
+        nodes=None,
+        x_l=0,
+        x_r=1,
+        boundary_condition="D",
+        basis_functions="triangle",
+    ) -> None:
+
+        if isinstance(nodes, int):
+            nodes = np.linspace(x_l, x_r, nodes + 1)
+
+        S = calculate_S(nodes, basis_functions, p=p, q=q, f=f)
+        DiffEqn.__init__(
+            self, initial_condition, nodes, S, boundary_condition, basis_functions
+        )
+
+
+class LagrangeDiffEqn(DiffEqn):
+    def __init__(
+        self,
+        alpha,
+        initial_condition,
+        nodes,
+        boundary_condition="D",
+        basis_functions="triangle",
+        x_l=0,
+        x_r=1,
+    ) -> None:
+        if isinstance(alpha, np.ndarray):
+            b = copy.deepcopy(alpha)
+            alpha = lambda x: b
+        self.n_max, self.m_max = alpha(0).shape
+        if isinstance(nodes, int):
+            nodes = np.linspace(x_l, x_r, nodes + 1)
+        S = self.calculate_S(nodes, basis_functions, alpha)
+        print(S[0])
+        DiffEqn.__init__(
+            self,
+            initial_condition,
+            nodes,
+            S,
+            boundary_condition,
+            basis_functions,
+        )
+
+    def calculate_S(self, nodes, basis_functions_shape, alpha):
+        # n,m,k,l
+        phi = BasisFunctionsArray(nodes, basis_functions_shape)
+        N = len(nodes) - 1
+
+        def phi_deriv(x, i):
+            return derivative(phi[i], x, 0.00001)
+
+        n_max, m_max = self.n_max, self.m_max
+        s = np.zeros((n_max, m_max, n_max, m_max))
+
+        def phi_array(x, i):
+            arr = np.zeros((n_max, m_max, n_max, m_max))
+            for n in range(n_max):
+                for m in range(m_max):
+                    for k in range(n + 1):
+                        for l in range(m + 1):
+                            arr[n, m, k, l] = (
+                                phi[i](x) ** k
+                                * phi[i + 1](x) ** (n - k)
+                                * phi_deriv(x, i) ** l
+                                * phi_deriv(x, i + 1) ** (m - l)
+                            )
+            return arr
+
+        list_of_S = []
+        for i in range(N):  # i=0  here represents i=1 in the article
+            array_valued_integrand = lambda x: np.expand_dims(
+                alpha(x), (2, 3)
+            ) * phi_array(x, i)
+            s = integrate.quad_vec(array_valued_integrand, nodes[i], nodes[i + 1])[0]
+            list_of_S.append(s)
+
+        return list_of_S
+
+    def calculate_A_of_segment(
+        self, a_left, a_right
+    ):  # i-th segment, normally n for segment but was taken
+        n_max, m_max = self.n_max, self.m_max
+        arr = np.zeros((n_max, m_max, n_max, m_max))
+        for n in range(n_max):
+            for m in range(m_max):
+                for k in range(n + 1):
+                    for l in range(m + 1):
+                        arr[n, m, k, l] = (
+                            a_left ** (k + l)
+                            * a_right ** (n + m - k - l)
+                            * comb(n, k)
+                            * comb(m, l)  # choose function
+                        )
+        return arr
