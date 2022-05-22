@@ -107,6 +107,7 @@ class DiffEqn:
     def plot_with_graph(self, i):
         u_c = self.solution_iterates[i]
         bqm = self.bqm_iterates[i]
+        r = self.r_iterates[i]
         plt.subplot(211)
         self.plot_solution(u_c)
         plt.title(f"Iteration {i}")
@@ -136,6 +137,7 @@ class DiffEqn:
 
         u_c = copy.copy(self.initial_condition)
         self.solution_iterates = []
+        self.r_iterates = []
         self.bqm_iterates = []
         self.a_min_iterates = []
 
@@ -153,6 +155,8 @@ class DiffEqn:
             # solver.sample(bqm)  # adjust this to the solver!
             a_min = compute_a_min(sampleset, u_c, r)
             self.a_min_iterates.append(a_min)
+            self.r_iterates.append(r)
+
             if Pi_functional(self.S, a_min) < Pi_functional(self.S, u_c):
                 u_c = a_min
             else:
