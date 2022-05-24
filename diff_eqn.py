@@ -70,6 +70,7 @@ class DiffEqn:
         self.solution_iterates = []
         self.bqm_iterates = []
         self.a_min_iterates = []
+        self.r_iterates = []
 
     def solution_function(self, coefficients=None):
         """Returns the function x |-> \sum a[i]*\phi_i(x) where a[i] are the given coefficients.
@@ -96,7 +97,7 @@ class DiffEqn:
 
         return fct
 
-    def plot_solution(self, coefficients=None, ax=plt, **kwargs):
+    def plot_solution(self, coefficients=None, ax=plt, r_range=False, r=None, **kwargs):
         """Plots the solution given by DiffEqn.solution_function
 
         Args:
@@ -104,18 +105,23 @@ class DiffEqn:
         """
         x_axis = np.linspace(self.nodes[0], self.nodes[-1], 1000)
         sol_fct = self.solution_function(coefficients)
-        ax.plot(x_axis, sol_fct(x_axis), **kwargs)
+        y = sol_fct(x_axis)
+        ax.plot(x_axis, y, **kwargs)
+        if r_range:
+            if r is None:
+                r = self.r_iterates[-1]
+            plt.fill_between(x_axis, y - r, y + r, color="#ef3936", alpha=0.5)
 
-    def default_plot(self, i):
+    def default_plot(self, i, r_range=False, r=None):
         u_c = self.solution_iterates[i]
-        self.plot_solution(u_c)
+        self.plot_solution(u_c, r_range=r_range, r=r)
         plt.title(f"Iteration {i}")
 
-    def plot_with_graph(self, i):
+    def plot_with_graph(self, i, r_range=False, r=None):
         u_c = self.solution_iterates[i]
         bqm = self.bqm_iterates[i]
         plt.subplot(211)
-        self.plot_solution(u_c)
+        self.plot_solution(u_c, r_range=r_range, r=r)
         plt.title(f"Iteration {i}")
         plt.subplot(212)
         show_bqm_graph(bqm, show=False)
@@ -131,6 +137,7 @@ class DiffEqn:
         J_hat=1,
         b_c_strength=1,
         sampler_config=None,
+        maximize=False,
     ):
         if sampler is None:
             sampler = simulated_sample
@@ -145,8 +152,10 @@ class DiffEqn:
         self.solution_iterates = []
         self.bqm_iterates = []
         self.a_min_iterates = []
+        self.r_iterates = []
 
         while r > r_min:
+            self.r_iterates.append(r)
             J_tildes = self.compute_all_J_tildes(u_c, r)
             bqm = create_bqm(
                 H,
@@ -154,6 +163,7 @@ class DiffEqn:
                 J_tildes,
                 boundary_condition=self.boundary_condition,
                 b_c_strength=b_c_strength,
+                maximize=maximize,
             )
             self.bqm_iterates.append(bqm)
             sampleset = sampler(bqm, **sampler_config)
@@ -177,6 +187,7 @@ class DiffEqn:
         graph=False,
         duration=0.05,
         plot_function=None,
+        r_range=False,
         **kwargs,
     ):
         if plot_function is None:
@@ -206,13 +217,9 @@ class DiffEqn:
 
         absolute_filename = absolute_folder + file_base
 
-        # fig, ax = plt.subplots()
-
         images = []
         for i in range(len(self.solution_iterates)):
-            plot_function(i)
-            # self.plot_solution(u_c, **kwargs)
-            # plt.title(f"Iteration {i}")
+            plot_function(i, r=self.r_iterates[i], r_range=r_range)
             plt.savefig(frame_folder + f"frame_{i}.png")
             images.append(imageio.imread(frame_folder + f"frame_{i}.png"))
             plt.clf()
@@ -313,7 +320,7 @@ class SADiffEqn(DiffEqn):
         nodes=None,
         x_l=0,
         x_r=1,
-        boundary_condition="D",
+        boundary_condition="d",
         basis_functions="triangle",
     ) -> None:
 
@@ -344,7 +351,8 @@ class LagrangeDiffEqn(DiffEqn):
         if isinstance(nodes, int):
             nodes = np.linspace(x_l, x_r, nodes + 1)
         S = self.calculate_S(nodes, basis_functions, alpha)
-        print(S[0])
+        print(S[0][3, 0])
+        print(S[0][0, 2])
         DiffEqn.__init__(
             self,
             initial_condition,
@@ -380,7 +388,7 @@ class LagrangeDiffEqn(DiffEqn):
             return arr
 
         list_of_S = []
-        for i in range(N):  # i=0  here represents i=1 in the article
+        for i in range(N):
             array_valued_integrand = lambda x: np.expand_dims(
                 alpha(x), (2, 3)
             ) * phi_array(x, i)

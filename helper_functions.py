@@ -63,14 +63,16 @@ def parse_label(label):
     return int(str_k), int(str_i)
 
 
-def create_bqm(H, J_hat, J_tildes, boundary_condition, b_c_strength=1):
+def create_bqm(H, J_hat, J_tildes, boundary_condition, b_c_strength=1, maximize=False):
     """Creates BinaryQuadraticModel from parameters
 
     Args:
         H (float): self-interaction strength
         J_hat (float): interaction strength between qubits in node graph
         J_tildes (array of matrices): interaction strengths between qubits of consecutive nodes
-        boundary_condition (string): type of boundary condition: "D" for Dirichlet, "N" for Neumann, otherwise ignored
+        boundary_condition (string): type of boundary condition: Boundary condition must be a string containing\
+                                     'd' for Dirichlet, 'n' for Neumann or '-' for no boundary condition,\
+                                     or two of these characters to have different boundary conditions at each end.
         b_c_strength (float): strength of boundary condition-enforcing interactions, the higher the stronger.
                               Coefficient will be set to the negative of this number
 
@@ -78,6 +80,8 @@ def create_bqm(H, J_hat, J_tildes, boundary_condition, b_c_strength=1):
         BinaryQuadraticModel: bqm corresponding to the inputs
     """
     N = len(J_tildes)
+    if maximize:
+        J_tildes = [-J for J in J_tildes]
     # are all J_tilde's the same? Then list is redundant, but N needs to be given
 
     # add self-interaction terms
@@ -105,15 +109,38 @@ def create_bqm(H, J_hat, J_tildes, boundary_condition, b_c_strength=1):
                 label2 = get_label(l, i)
                 quadratic[(label1, label2)] = J_tildes[i - 1][k - 1][l - 1]
 
-    if boundary_condition in ["d", "D", "dirichlet", "Dirichlet"]:
-        # Dirichlet boundary condition, see notes.txt
+    bc_error_message = f"Invalid boundary condition {boundary_condition}. Boundary condition must be a string containing\
+         'd' for Dirichlet, 'n' for Neumann or '-' for no boundary condition,\
+         or two of these characters to have different boundary conditions at each end."
+
+    if not isinstance(boundary_condition, str):
+        raise ValueError(bc_error_message)
+    if len(boundary_condition) not in [1, 2]:
+        raise ValueError(bc_error_message)
+    boundary_condition = boundary_condition.lower()
+    if len(boundary_condition) == 1:
+        boundary_condition *= 2
+    boundary_condition_left, boundary_condition_right = boundary_condition
+
+    if boundary_condition_left == "d":  # Dirichlet boundary condition, see notes.txt
         linear[get_label(2, 0)] = -b_c_strength
-        linear[get_label(2, N)] = -b_c_strength
-    elif boundary_condition in ["n", "N", "neumann", "Neumann"]:
-        # Neumann boundary condition, see notes.txt
+    elif boundary_condition_left == "n":  # Neumann boundary condition, see notes.txt
         for k in range(1, 4):
             quadratic[(get_label(k, 0), get_label(k, 1))] = -b_c_strength
+    elif boundary_condition_left == "-":
+        pass
+    else:
+        ValueError(bc_error_message)
+
+    if boundary_condition_right == "d":
+        linear[get_label(2, N)] = -b_c_strength
+    elif boundary_condition_right == "n":
+        for k in range(1, 4):
             quadratic[(get_label(k, N - 1), get_label(k, N))] = -b_c_strength
+    elif boundary_condition_right == "-":
+        pass
+    else:
+        ValueError(bc_error_message)
 
     return BinaryQuadraticModel(linear, quadratic, vartype=SPIN)
 
