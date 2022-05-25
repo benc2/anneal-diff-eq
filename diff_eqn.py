@@ -12,6 +12,7 @@ import numpy as np
 import scipy.integrate as integrate
 from dwave.system import DWaveSampler, EmbeddingComposite
 from scipy.misc import derivative
+import math
 
 from basisfunctions import BasisFunctionsArray, calculate_S
 from graph import show_bqm_graph
@@ -22,6 +23,7 @@ from helper_functions import (
     create_bqm,
     feasible_solution,
 )
+from progressbar import ProgressBar
 
 
 def simulated_sample(bqm, **kwargs):
@@ -140,6 +142,9 @@ class DiffEqn:
         b_c_strength=1,
         sampler_config=None,
         maximize=False,
+        progress_bar=False,
+        maxiter=math.inf,
+        r_factor=2,
     ):
         if sampler is None:
             sampler = simulated_sample
@@ -156,8 +161,11 @@ class DiffEqn:
         self.bqm_iterates = []
         self.a_min_iterates = []
         self.r_iterates = []
+        if progress_bar:
+            pb = ProgressBar(int(np.log(r / r_min) / np.log(r_factor)) + 1, width=30)
 
-        while r > r_min:
+        i = 0
+        while r > r_min or i > maxiter:
             self.r_iterates.append(r)
             J_tildes = self.compute_all_J_tildes(u_c, r)
             bqm = create_bqm(
@@ -176,9 +184,12 @@ class DiffEqn:
             if self.Pi_functional(a_min) < self.Pi_functional(u_c):
                 u_c = a_min
             else:
-                r /= 2
+                if progress_bar:
+                    pb.tick(extra=f"(i={i})")
+                r /= r_factor
 
             self.solution_iterates.append(u_c)
+            i += 1
 
         self.solution = u_c
         return u_c
@@ -191,6 +202,7 @@ class DiffEqn:
         duration=0.05,
         plot_function=None,
         r_range=False,
+        progress_bar=False,
         **kwargs,
     ):
         if plot_function is None:
@@ -218,11 +230,15 @@ class DiffEqn:
         absolute_filename = absolute_folder + file_base
 
         images = []
+        if progress_bar:
+            pb = ProgressBar(len(self.solution_iterates), width=30)
         for i in range(len(self.solution_iterates)):
             plot_function(i)
             plt.savefig(frame_folder + f"frame_{i}.png")
             images.append(imageio.imread(frame_folder + f"frame_{i}.png"))
             plt.clf()
+            if progress_bar:
+                pb.tick()
 
         shutil.rmtree(frame_folder)
         imageio.mimsave(absolute_filename, images, duration=duration)
