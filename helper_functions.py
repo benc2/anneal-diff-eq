@@ -122,11 +122,11 @@ def create_bqm(H, J_hat, J_tildes, boundary_condition, b_c_strength=1, maximize=
         boundary_condition *= 2
     boundary_condition_left, boundary_condition_right = boundary_condition
 
-    if boundary_condition_left == "d":  # Dirichlet boundary condition, see notes.txt
+    if boundary_condition_left in ("d","b"):  # Dirichlet boundary condition, see notes.txt
         linear[get_label(2, 0)] = -b_c_strength
-    elif boundary_condition_left == "n":  # Neumann boundary condition, see notes.txt
+    elif boundary_condition_left in ("n","b"):  # Neumann boundary condition, see notes.txt
         for k in range(1, 4):
-            quadratic[(get_label(k, 0), get_label(k, 1))] = -b_c_strength
+            quadratic[(get_label(k, 0), get_label(k, 1))] += -b_c_strength
     elif boundary_condition_left == "-":
         pass
     else:
@@ -136,7 +136,7 @@ def create_bqm(H, J_hat, J_tildes, boundary_condition, b_c_strength=1, maximize=
         linear[get_label(2, N)] = -b_c_strength
     elif boundary_condition_right == "n":
         for k in range(1, 4):
-            quadratic[(get_label(k, N - 1), get_label(k, N))] = -b_c_strength
+            quadratic[(get_label(k, N - 1), get_label(k, N))] += -b_c_strength
     elif boundary_condition_right == "-":
         pass
     else:
