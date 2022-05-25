@@ -112,20 +112,39 @@ class DiffEqn:
                 r = self.r_iterates[-1]
             plt.fill_between(x_axis, y - r, y + r, color="#ef3936", alpha=0.5)
 
-    def default_plot(self, i, r_range=False, r=None):
-        u_c = self.solution_iterates[i]
-        self.plot_solution(u_c, r_range=r_range, r=r)
-        plt.title(f"Iteration {i}")
+    def get_default_plotter(self, r_range=False, graph=False):
+        def plot(i):
+            u_c = self.solution_iterates[i]
+            if graph:
+                plt.subplot(211)
+            if r_range:
+                self.plot_solution(u_c, r_range=r_range, r=self.r_iterates[i])
+            else:
+                self.plot_solution(u_c)
+            if graph:
+                plt.subplot(212)
+                bqm = self.bqm_iterates[i]
+                show_bqm_graph(bqm, show=False)
+            plt.title(f"Iteration {i}")
 
-    def plot_with_graph(self, i, r_range=False, r=None):
-        u_c = self.solution_iterates[i]
-        bqm = self.bqm_iterates[i]
-        plt.subplot(211)
-        self.plot_solution(u_c, r_range=r_range, r=r)
-        plt.title(f"Iteration {i}")
-        plt.subplot(212)
-        show_bqm_graph(bqm, show=False)
-        plt.tight_layout()
+        return plot
+
+    # def default_plot(self, i, r_range=False, r=None, graph=False):
+    #     if graph
+    #     u_c = self.solution_iterates[i]
+    #     self.plot_solution(u_c, r_range=r_range, r=self.r_iterates[i])
+    #     if graph:
+    #         show_bqm_graph(bqm, show=False)
+    #     plt.title(f"Iteration {i}")
+
+    # def plot_with_graph(self, i, r_range=False, r=None):
+    #     u_c = self.solution_iterates[i]
+
+    #     plt.subplot(211)
+    #     self.plot_solution(u_c, r_range=r_range, r=self.r_iterates[i])
+    #     plt.title(f"Iteration {i}")
+    #     plt.subplot(212)
+    #     show_bqm_graph(bqm, show=False)
 
     def solve(
         self,
@@ -191,10 +210,7 @@ class DiffEqn:
         **kwargs,
     ):
         if plot_function is None:
-            if graph:
-                plot_function = self.plot_with_graph
-            else:
-                plot_function = self.default_plot
+            plot_function = self.get_default_plotter(graph=graph, r_range=r_range)
         # for now without graph
         if filename:
             folder = os.path.dirname(filename).replace("\\", "/") + "/"
@@ -219,7 +235,7 @@ class DiffEqn:
 
         images = []
         for i in range(len(self.solution_iterates)):
-            plot_function(i, r=self.r_iterates[i], r_range=r_range)
+            plot_function(i)
             plt.savefig(frame_folder + f"frame_{i}.png")
             images.append(imageio.imread(frame_folder + f"frame_{i}.png"))
             plt.clf()
@@ -236,7 +252,7 @@ class DiffEqn:
     def calculate_A(self, a):
         return [
             self.calculate_A_of_segment(a_left, a_right)
-            for a_left, a_right in zip(a, a[:1])
+            for a_left, a_right in zip(a, a[1:])
         ]
 
     def Pi_functional(self, a):
