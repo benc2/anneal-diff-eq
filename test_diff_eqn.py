@@ -4,7 +4,7 @@ from diff_eqn import SADiffEqn
 
 N = 15
 r = 6
-r_min = 0.00001 * r
+r_min = 0.001 * r
 # u_c = np.linspace(0, 1, N + 1) ** 2 * (1 - np.linspace(0, 1, N + 1))
 u_c = np.linspace(0, 1, N + 1)
 # u_c = np.array([0] * N + [1])
@@ -22,11 +22,11 @@ diff_eq = SADiffEqn(
 # zo lost ie m op met het box algorithm
 # je kan met de sampler parameter een sampler kiezen, als deze nog extra parameters heeft
 # kan je die met sampler_config meegeven, als dict, bijv sampler_config = {"beta": [0.1, 4.2], "filter"=True}
-solution = diff_eq.solve(r=r, r_min=r_min)
+solution = diff_eq.solve(r=r, r_min=r_min, progress_bar=True)
 print(solution)
 # je kan filename specificeren maar anders stopt ie m in de animations/datum folder
 # hij heeft standaard plot opties, met graph aan of uit
-diff_eq.animate(filename="animations/specialname.gif", graph=True)
+diff_eq.animate(filename="animations/specialname.gif", graph=True, progress_bar=True)
 
 
 # maar als je zelf wil bepalen hoe het eruit ziet kan je zo'n functie maken en als parameter meegeven
