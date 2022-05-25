@@ -7,7 +7,7 @@ import imageio
 import neal
 import numpy as np
 import webbrowser
-from dwave.system import DWaveSampler, EmbeddingComposite
+from dwave.system import DWaveSampler, EmbeddingComposite, LazyFixedEmbeddingComposite, LeapHybridSampler
 
 from basisfunctions import BasisFunctionsArray, calculate_S
 from graph import show_bqm_graph
@@ -29,6 +29,10 @@ def simulated_sample(bqm, **kwargs):
 def real_sample(bqm, **kwargs):
     real_solver = EmbeddingComposite(DWaveSampler())
     return real_solver.sample(bqm, **kwargs).aggregate()
+
+def lazy_sample(bqm, **kwargs):
+    real_solver = LazyFixedEmbeddingComposite(DWaveSampler())
+    return real_solver.sample(bqm, num_reads=10000, **kwargs).aggregate()
 
 
 def sample(bqm, sampler, filter=False, **kwargs):
