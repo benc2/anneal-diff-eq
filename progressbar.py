@@ -19,10 +19,7 @@ class ProgressBar:
         )
         # sys.stdout.write("\b" + pb)
         # sys.stdout.flush()
-        if self.current_tick < self.ticks:
-            print(pb, end="\r")
-        elif self.current_tick == self.ticks:
-            print(pb)
+        print("\r" + pb, end="")
 
     def tick(self, extra=""):
         self.current_tick += 1
