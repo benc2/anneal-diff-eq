@@ -1,12 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from diff_eqn import DiffEqn
+from diff_eqn import SADiffEqn
 
-N = 6
-r = 1.1 / N
+N = 15
+r = 6
 r_min = 0.00001 * r
-u_c = np.linspace(0, 1, N + 1) ** 2 * (1 - np.linspace(0, 1, N + 1))
-diff_eq = DiffEqn(
+# u_c = np.linspace(0, 1, N + 1) ** 2 * (1 - np.linspace(0, 1, N + 1))
+u_c = np.linspace(0, 1, N + 1)
+# u_c = np.array([0] * N + [1])
+diff_eq = SADiffEqn(
     p=1,
     q=0,
     f=2,
@@ -31,13 +33,13 @@ diff_eq.animate(filename="animations/specialname.gif", graph=True)
 def plot_function(i):
     plt.title(f"Iteration {i}")
     x_axis = np.linspace(0, 1, 1000)
-    plt.plot(x_axis, x_axis - x_axis**2)
+    plt.plot(x_axis, -x_axis * (x_axis - 2), label="exact solution")
 
     u_c = diff_eq.solution_iterates[i]
     a_min = diff_eq.a_min_iterates[i]
-    plt.plot(np.linspace(0, 1, N + 1), u_c, "o")
-    plt.plot(np.linspace(0, 1, N + 1), a_min, ".")
-    plt.legend(["u_c", "a_min", "exact solution"])
+    plt.plot(np.linspace(0, 1, N + 1), u_c, "o", label="u_c")
+    plt.plot(np.linspace(0, 1, N + 1), a_min, ".", label="a_min")
+    plt.legend()
 
 
 diff_eq.animate(plot_function=plot_function)
