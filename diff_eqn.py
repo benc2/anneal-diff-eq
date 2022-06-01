@@ -36,6 +36,7 @@ def real_sample(bqm, **kwargs):
     real_solver = EmbeddingComposite(DWaveSampler())
     return real_solver.sample(bqm, **kwargs).aggregate()
 
+
 def lazy_sample(bqm, **kwargs):
     real_solver = LazyFixedEmbeddingComposite(DWaveSampler())
     return real_solver.sample(bqm, num_reads=10000, **kwargs).aggregate()
@@ -169,7 +170,7 @@ class DiffEqn:
             pb = ProgressBar(int(np.log(r / r_min) / np.log(r_factor)) + 1, width=30)
 
         i = 0
-        while r > r_min or i > maxiter:
+        while r > r_min and i <= maxiter:
             self.r_iterates.append(r)
             J_tildes = self.compute_all_J_tildes(u_c, r)
             bqm = create_bqm(
