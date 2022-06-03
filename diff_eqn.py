@@ -208,6 +208,8 @@ class DiffEqn:
         plot_function=None,
         r_range=False,
         progress_bar=False,
+        target_function=None,
+        y_bounds=None,
         **kwargs,
     ):
         if plot_function is None:
@@ -239,6 +241,11 @@ class DiffEqn:
             pb = ProgressBar(len(self.solution_iterates), width=30)
         for i in range(len(self.solution_iterates)):
             plot_function(i)
+            if target_function is not None:
+                x = np.linspace(self.x_l, self.x_r, 1000)
+                plt.plot(x, target_function(x), "--")
+            if y_bounds is not None:
+                plt.ylim(*y_bounds)
             plt.savefig(frame_folder + f"frame_{i}.png")
             images.append(imageio.imread(frame_folder + f"frame_{i}.png"))
             plt.clf()
@@ -338,7 +345,7 @@ class SADiffEqn(DiffEqn):
         q,
         f,
         initial_condition,
-        nodes=None,
+        nodes,
         x_l=0,
         x_r=1,
         boundary_condition="d",
@@ -352,6 +359,86 @@ class SADiffEqn(DiffEqn):
         DiffEqn.__init__(
             self, initial_condition, nodes, S, boundary_condition, basis_functions
         )
+        self.x_l = x_l
+        self.x_r = x_r
+
+
+class NeumannSADiffEqn(SADiffEqn):
+    def __init__(
+        self,
+        p,
+        q,
+        f,
+        initial_condition,
+        neumann_value,
+        nodes=None,
+        x_l=0,
+        x_r=1,
+        neumann_side="r",
+        basis_functions="triangle",
+    ) -> None:
+        if isinstance(p, (int, float)):
+            p_val = p
+            p = lambda x: p_val
+        if isinstance(q, (int, float)):
+            q_val = q
+            q = lambda x: q_val
+        if isinstance(f, (int, float)):
+            f_val = f
+            f = lambda x: f_val
+
+        if neumann_side.lower() == "r":
+            boundary_condition = "d-"
+        elif neumann_side.lower() == "l":
+            boundary_condition = "-d"
+
+        self.offset = np.vectorize(lambda x: neumann_value * x, otypes=[float])
+        p_prime = lambda x: derivative(p, x, 0.00001)
+        adjusted_f = lambda x: f(x) + neumann_value * p_prime(x) - self.offset(x) * q(x)
+        super().__init__(
+            p,
+            q,
+            adjusted_f,
+            initial_condition - self.offset(nodes),
+            nodes,
+            x_l,
+            x_r,
+            boundary_condition,
+            basis_functions,
+        )
+
+    def solve(
+        self,
+        r,
+        r_min=None,
+        Pi_min=None,
+        sampler=None,
+        H=1,
+        J_hat=1,
+        b_c_strength=1,
+        sampler_config=None,
+        maximize=False,
+        progress_bar=False,
+        maxiter=math.inf,
+        r_factor=2,
+    ):
+        soln = super().solve(
+            r,
+            r_min,
+            Pi_min,
+            sampler,
+            H,
+            J_hat,
+            b_c_strength,
+            sampler_config,
+            maximize,
+            progress_bar,
+            maxiter,
+            r_factor,
+        )
+        node_offsets = self.offset(self.nodes)
+        self.solution_iterates = [u_c + node_offsets for u_c in self.solution_iterates]
+        return soln + node_offsets
 
 
 class LagrangeDiffEqn(DiffEqn):
