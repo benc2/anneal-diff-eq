@@ -1,6 +1,4 @@
-import time
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.special import i0, k0, i1, k1
 from diff_eqn import NeumannSADiffEqn
 
@@ -21,11 +19,6 @@ def soln(x):
             + i0(2 * np.sqrt(6)) * k1(2 * np.sqrt(3))
         )
     )
-
-
-x = np.linspace(0, 1, 1000)
-plt.plot(x, soln(x))
-plt.show()
 
 
 N = 12
