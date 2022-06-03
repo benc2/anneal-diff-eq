@@ -370,11 +370,11 @@ class NeumannSADiffEqn(SADiffEqn):
         q,
         f,
         initial_condition,
+        nodes,
         neumann_value,
-        nodes=None,
+        neumann_side,
         x_l=0,
         x_r=1,
-        neumann_side="r",
         basis_functions="triangle",
     ) -> None:
         if isinstance(p, (int, float)):
