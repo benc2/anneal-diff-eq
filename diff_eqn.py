@@ -363,7 +363,7 @@ class SADiffEqn(DiffEqn):
         self.x_r = x_r
 
 
-class NeumannSADiffEqn(SADiffEqn):
+class OffsetSADiffEqn(SADiffEqn):  # template class for Neumann and two sided Neumann
     def __init__(
         self,
         p,
@@ -371,12 +371,13 @@ class NeumannSADiffEqn(SADiffEqn):
         f,
         initial_condition,
         nodes,
-        neumann_value,
-        neumann_side,
+        offset,
         x_l=0,
         x_r=1,
+        boundary_condition="d",
         basis_functions="triangle",
     ) -> None:
+
         if isinstance(p, (int, float)):
             p_val = p
             p = lambda x: p_val
@@ -387,14 +388,14 @@ class NeumannSADiffEqn(SADiffEqn):
             f_val = f
             f = lambda x: f_val
 
-        if neumann_side.lower() == "r":
-            boundary_condition = "d-"
-        elif neumann_side.lower() == "l":
-            boundary_condition = "-d"
+        self.offset = np.vectorize(offset, otypes=[float])
+        # p_prime = lambda x: derivative(p, x, 0.00001)
+        offset_prime = lambda x: derivative(self.offset, x, 0.00001)
+        p_offset_prime_prime = lambda x: derivative(
+            lambda x: p(x) * offset_prime(x), x, 0.00001
+        )
+        adjusted_f = lambda x: f(x) + p_offset_prime_prime(x) - self.offset(x) * q(x)
 
-        self.offset = np.vectorize(lambda x: neumann_value * x, otypes=[float])
-        p_prime = lambda x: derivative(p, x, 0.00001)
-        adjusted_f = lambda x: f(x) + neumann_value * p_prime(x) - self.offset(x) * q(x)
         super().__init__(
             p,
             q,
@@ -439,6 +440,73 @@ class NeumannSADiffEqn(SADiffEqn):
         node_offsets = self.offset(self.nodes)
         self.solution_iterates = [u_c + node_offsets for u_c in self.solution_iterates]
         return soln + node_offsets
+
+
+class NeumannSADiffEqn(OffsetSADiffEqn):
+    def __init__(
+        self,
+        p,
+        q,
+        f,
+        initial_condition,
+        nodes,
+        neumann_value,
+        neumann_side,
+        x_l=0,
+        x_r=1,
+        basis_functions="triangle",
+    ) -> None:
+        if neumann_side.lower() == "r":
+            boundary_condition = "d-"
+        elif neumann_side.lower() == "l":
+            boundary_condition = "-d"
+
+        offset = lambda x: neumann_value * x
+
+        super().__init__(
+            p,
+            q,
+            f,
+            initial_condition,
+            nodes,
+            offset,
+            x_l,
+            x_r,
+            boundary_condition,
+            basis_functions,
+        )
+
+
+class DoubleNeumannSADiffEqn(OffsetSADiffEqn):
+    def __init__(
+        self,
+        p,
+        q,
+        f,
+        initial_condition,
+        neumann_value_left,
+        neumann_value_right,
+        nodes,
+        x_l=0,
+        x_r=1,
+        basis_functions="triangle",
+    ) -> None:
+        boundary_condition = "--"
+        c1 = (neumann_value_left - neumann_value_right) / (x_l - x_r) / 2
+        c2 = (neumann_value_right * x_l - neumann_value_left * x_r) / (x_l - x_r)
+        offset = lambda x: c1 * x**2 + c2 * x
+        super().__init__(
+            p,
+            q,
+            f,
+            initial_condition,
+            nodes,
+            offset,
+            x_l,
+            x_r,
+            boundary_condition,
+            basis_functions,
+        )
 
 
 class LagrangeDiffEqn(DiffEqn):

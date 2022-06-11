@@ -34,7 +34,7 @@ diff_eq = NeumannSADiffEqn(
     initial_condition=u_c,
     nodes=nodes,
 )
-diff_eq.solve(r=1, r_min=1e-5)
+diff_eq.solve(r=1, r_min=1e-5, maxiter=70)
 diff_eq.animate(
     target_function=soln,
     y_bounds=(-0.4, 0.1),
