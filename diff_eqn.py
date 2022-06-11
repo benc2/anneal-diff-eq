@@ -78,6 +78,7 @@ class DiffEqn:
         self.bqm_iterates = []
         self.a_min_iterates = []
         self.r_iterates = []
+        self.i = 0
 
     def solution_function(self, coefficients=None):
         """Returns the function x |-> \sum a[i]*\phi_i(x) where a[i] are the given coefficients.
@@ -169,8 +170,8 @@ class DiffEqn:
         if progress_bar:
             pb = ProgressBar(int(np.log(r / r_min) / np.log(r_factor)) + 1, width=30)
 
-        i = 0
-        while r > r_min and i <= maxiter:
+        self.i = 0
+        while r > r_min and self.i <= maxiter:
             self.r_iterates.append(r)
             J_tildes = self.compute_all_J_tildes(u_c, r)
             bqm = create_bqm(
@@ -190,11 +191,11 @@ class DiffEqn:
                 u_c = a_min
             else:
                 if progress_bar:
-                    pb.tick(extra=f"(i={i})")
+                    pb.tick(extra=f"(i={self.i})")
                 r /= r_factor
 
             self.solution_iterates.append(u_c)
-            i += 1
+            self.i += 1
 
         self.solution = u_c
         return u_c

@@ -318,3 +318,23 @@ def feasible_solution(sample):
         if Sum != -1:  # check whether v^i_1 + v^i_2 + v^i_1 == -1
             return False
     return True
+
+def interpolate_nodes(mask, old_nodes, new_nodes, x_l=0, x_r=1):
+    """ " Takes as an input the values of a solution (mask) at a given set of nodes (old_nodes) and interpolates it
+    to the set of new nodes. Returns the interpolated array.
+
+    Args:
+         mask (array):  The values used for interpolation
+         old_nodes (array or int): array or integer representing the (number of) old nodes
+         new_nodes (array or int): array or integer representing the (number of) new nodes
+         x_l (float): left boundary of the range of nodes (in case either old_nodes or new_nodes is an int)
+         x_r (float): right boundary of the range of nodes (in case either old_nodes or new_nodes is an int)
+
+    Returns:
+         (array): Interpolated array at new_nodes
+    """
+    if isinstance(old_nodes, int):
+        old_nodes = np.linspace(x_l, x_r, old_nodes + 1)
+    if isinstance(new_nodes, int):
+        new_nodes = np.linspace(x_l, x_r, new_nodes + 1)
+    return np.interp(new_nodes, old_nodes, mask)
